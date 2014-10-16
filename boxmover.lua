@@ -176,7 +176,7 @@ function allMoves(str)
 end
 
 function isEnd(str)
-    return str:find('o') == nil
+    return str:find('[-I]') == nil
 end
 
 function printMoves(parent, end_state)
