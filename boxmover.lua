@@ -212,11 +212,20 @@ function solveGame(str)
     end
 end
 
+if arg and arg[1] then
+    local fname = arg[1]
+    local f = io.open(fname)
+    local str = f:read("*a")
+    f:close()
+    solveGame(str)
+else
 solveGame([[
 #########
 #   _ _ #
 # #@  @ #
 #    *  #
-#########]]
+#########
+]]
 )
+end
 
