@@ -52,9 +52,11 @@ function strToGame(str)
     local row = game[#game]
     for i = 1, #str do
         local c = str:sub(i, i)
-        if c == '\n' and not isEmpty(row) then
-            table.insert(game, {})
-            row = game[#game]
+        if c == '\n' then
+            if not isEmpty(row) then
+                table.insert(game, {})
+                row = game[#game]
+            end
         else
             table.insert(row, c)
         end
