@@ -3,13 +3,13 @@
 -- game:
 
 -- #########
--- #   _ _ #
--- # #@  @ #
--- #    *  #
+-- #   - - #
+-- # #o  o #
+-- #    i  #
 -- #########
 
--- * + _ = v
--- @ + _ = !
+-- i + - = I
+-- o + - = 0
 
 function sizes(game)
     local height = #game
@@ -22,19 +22,19 @@ function isEmpty(t)
 end
 
 function isMan(char)
-    return char == '*' or char == 'v'
+    return char == 'i' or char == 'I'
 end
 
 function isBomb(char)
-    return char == '_' or char == 'v' or char == '!'
+    return char == '-' or char == 'I' or char == '0'
 end
 
 function isBox(char)
-    return char == '@' or char == '!'
+    return char == 'o' or char == '0'
 end
 
 function isFree(char)
-    return char == ' ' or char == '_'
+    return char == ' ' or char == '-'
 end
 
 function gameToStr(game)
@@ -124,34 +124,34 @@ end
 
 function moveMan(game, man2_row, man2_col)
     local man_row, man_col = findMan(game)
-    if game[man_row][man_col] == '*' then
+    if game[man_row][man_col] == 'i' then
         game[man_row][man_col] = ' '
     end
-    if game[man_row][man_col] == 'v' then
-        game[man_row][man_col] = '_'
+    if game[man_row][man_col] == 'I' then
+        game[man_row][man_col] = '-'
     end
     if game[man2_row][man2_col] == ' ' then
-        game[man2_row][man2_col] = '*'
+        game[man2_row][man2_col] = 'i'
     end
-    if game[man2_row][man2_col] == '_' then
-        game[man2_row][man2_col] = 'v'
+    if game[man2_row][man2_col] == '-' then
+        game[man2_row][man2_col] = 'I'
     end
     if isBox(game[man2_row][man2_col]) then
-        if game[man2_row][man2_col] == '@' then
-            game[man2_row][man2_col] = '*'
+        if game[man2_row][man2_col] == 'o' then
+            game[man2_row][man2_col] = 'i'
         end
-        if game[man2_row][man2_col] == '!' then
-            game[man2_row][man2_col] = 'v'
+        if game[man2_row][man2_col] == '0' then
+            game[man2_row][man2_col] = 'I'
         end
         local row_diff = man2_row - man_row
         local col_diff = man2_col - man_col
         local man3_row = man2_row + row_diff
         local man3_col = man2_col + col_diff
         if game[man3_row][man3_col] == ' ' then
-            game[man3_row][man3_col] = '@'
+            game[man3_row][man3_col] = 'o'
         end
-        if game[man3_row][man3_col] == '_' then
-            game[man3_row][man3_col] = '!'
+        if game[man3_row][man3_col] == '-' then
+            game[man3_row][man3_col] = '0'
         end
     end
 end
@@ -176,7 +176,7 @@ function allMoves(str)
 end
 
 function isEnd(str)
-    return str:find('@') == nil
+    return str:find('o') == nil
 end
 
 function printMoves(parent, end_state)
@@ -221,9 +221,9 @@ if arg and arg[1] then
 else
 solveGame([[
 #########
-#   _ _ #
-# #@  @ #
-#    *  #
+#   - - #
+# #o  o #
+#    i  #
 #########
 ]]
 )
