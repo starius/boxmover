@@ -94,7 +94,7 @@ function cellIsStandable(game, row, col)
     return true
 end
 
-function canMove(game, man2_row, man2_col)
+function canMove(game, man2_row, man2_col, move_boxes)
     if not cellIsStandable(game, man2_row, man2_col) then
         return false
     end
@@ -107,8 +107,10 @@ function canMove(game, man2_row, man2_col)
     if math.abs(row_diff) > 1 or math.abs(col_diff) > 1 then
         return false
     end
-    if isFree(game[man2_row][man2_col]) then
-        return true
+    if not move_boxes then
+        if isFree(game[man2_row][man2_col]) then
+            return true
+        end
     else
         local man3_row = man2_row + row_diff
         local man3_col = man2_col + col_diff
@@ -120,6 +122,7 @@ function canMove(game, man2_row, man2_col)
         end
         return true
     end
+    return false
 end
 
 function moveMan(game, man2_row, man2_col)
@@ -156,22 +159,22 @@ function moveMan(game, man2_row, man2_col)
     end
 end
 
-function tryMove(new_states, str, man2_row, man2_col)
+function tryMove(new_states, str, man2_row, man2_col, move_boxes)
     local game = strToGame(str)
-    if canMove(game, man2_row, man2_col) then
+    if canMove(game, man2_row, man2_col, move_boxes) then
         moveMan(game, man2_row, man2_col)
         table.insert(new_states, gameToStr(game))
     end
 end
 
-function allMoves(str)
+function allMoves(str, move_boxes)
     local new_states = {}
     local game = strToGame(str)
     local man_row, man_col = findMan(game)
-    tryMove(new_states, str, man_row - 1, man_col)
-    tryMove(new_states, str, man_row + 1, man_col)
-    tryMove(new_states, str, man_row, man_col - 1)
-    tryMove(new_states, str, man_row, man_col + 1)
+    tryMove(new_states, str, man_row - 1, man_col, move_boxes)
+    tryMove(new_states, str, man_row + 1, man_col, move_boxes)
+    tryMove(new_states, str, man_row, man_col - 1, move_boxes)
+    tryMove(new_states, str, man_row, man_col + 1, move_boxes)
     return new_states
 end
 
@@ -186,27 +189,67 @@ function printMoves(parent, end_state)
         table.insert(states, 1, state)
         state = parent[state]
     end
+    -- remove moves after end
+    while states[#states - 1] and isEnd(states[#states - 1]) do
+        table.remove(states, #states)
+    end
     for _, state in ipairs(states) do
         print(state)
     end
+end
+
+function clone_states(states)
+    local states_copy = {}
+    for k, v in pairs(states) do
+        states_copy[k] = v
+    end
+    return states_copy
+end
+
+function discoverNoBoxMoves(new_states, parent)
+    -- try all moves which do not move boxes (multi-move)
+    local new_states2 = clone_states(new_states)
+    while not isEmpty(new_states2) do
+        local state = next(new_states2)
+        new_states2[state] = nil
+        local next_states = allMoves(state, false)
+        for _, next_state in pairs(next_states) do
+            if parent[next_state] == nil then
+                parent[next_state] = state
+                new_states[next_state] = 1
+                new_states2[next_state] = 1
+            end
+        end
+    end
+    return new_states
+end
+
+function discoverBoxMoves(new_states, parent)
+    -- try all moves which do move boxes (single-move)
+    local new_states2 = {}
+    for state, _ in pairs(new_states) do
+        local next_states = allMoves(state, true)
+        for _, next_state in pairs(next_states) do
+            if parent[next_state] == nil then
+                parent[next_state] = state
+                new_states2[next_state] = 1
+            end
+        end
+    end
+    return new_states2
 end
 
 function solveGame(str)
     local parent = {[str] = 'init'}
     local new_states = {[str] = 1}
     while not isEmpty(new_states) do
-        local state = next(new_states)
-        new_states[state] = nil
-        local next_states = allMoves(state)
-        for _, next_state in pairs(next_states) do
-            if parent[next_state] == nil then
-                parent[next_state] = state
-                new_states[next_state] = 1
-                if isEnd(next_state) then
-                    print('solved!')
-                    printMoves(parent, next_state)
-                    return
-                end
+        new_states = discoverNoBoxMoves(new_states, parent)
+        new_states = discoverBoxMoves(new_states, parent)
+        for state, _ in pairs(new_states) do
+            if isEnd(state) then
+                print('solved!')
+                printMoves(parent, state)
+                return
             end
         end
     end
